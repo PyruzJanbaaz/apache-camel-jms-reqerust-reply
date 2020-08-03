@@ -13,8 +13,36 @@ Traditionally, this type of architecture has been implemented using TCP client a
 - Download and install ActivceMQ : https://wiki.eveoh.nl/display/MYTT/Software+packages+and+download+locations
 - Run ActiveMQ
 - Run the project for call API to send messages(request)
-- Make a new request by  postman: [Get] http://localhost:8080/rrp and set new heaer by key and value.
-
-key = [message] and value = [#test-2;USERNAME].
+- Make a new request by  postman: [Get] http://localhost:8080/rrp and set new heaer by key and value. (key = [message] , value = [#test-2;USERNAME])
 - Go to http://localhost:8161/admin/queues.jsp on your browser. By default the Username and password is "admin", "admin".
+
+
+# How it works...
+    <camelContext trace="true" xmlns="http://camel.apache.org/schema/spring">
+        <route id="inbound">
+            <from uri="restlet:http://0.0.0.0:8080/rrp?restletMethods=get,post"/>
+            <filter>
+                <method ref="socketMessageFilter" method="filter"/>
+                <to uri="seda:next"/>
+            </filter>
+        </route>
+        <route>
+            <from uri="seda:next"/>
+            <choice>
+                <when>
+                    <method ref="socketMessageValidator" method="validation"/>
+                    <process id="inboundProcessor" ref="inboundProcessor"/>
+                    <to uri="activemq:queue:inbound?replyTo=outbound&amp;requestTimeout=60000&amp;replyToType=Exclusive&amp;maxConcurrentConsumers=5"
+                        pattern="InOut"/>
+                    <process ref="outboundProcessor"/>
+                </when>
+                <otherwise>
+                    <transform>
+                        <simple>info:duplicate</simple>
+                    </transform>
+                </otherwise>
+            </choice>
+        </route>
+    </camelContext>
+
 
