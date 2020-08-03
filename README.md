@@ -9,4 +9,10 @@ Traditionally, this type of architecture has been implemented using TCP client a
 ![alt text](https://static.packt-cdn.com/products/9781782169413/graphics/9413_01_05.jpg)
 
 
-#Usage
+# Usage
+first must be download and install ActivceMQ : 
+https://wiki.eveoh.nl/display/MYTT/Software+packages+and+download+locations
+After installation and running ActiveMQ, Run the project for call API to send messages(request)
+Make a new request by  postman: [Get] http://localhost:8080/rrp and set new heaer by key and value. key = [message] and value = [#test-2;USERNAME].
+Then go to http://localhost:8161/admin/queues.jsp on your browser. By default the Username and password is "admin", "admin".
+Now you write a JMS request-reply project.
