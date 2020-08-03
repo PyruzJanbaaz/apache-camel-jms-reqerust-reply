@@ -46,4 +46,6 @@ Traditionally, this type of architecture has been implemented using TCP client a
     </camelContext>
 
 
-As you can see in the preceding code, the request application creates a JMS MessageProducer object for sending its request along with a MessageConsumer object to listen for the response. In the application, I create a JMS temporary queue and assign that to JMSReplyTo for every request message I send.
+As you can see in the code, the request application creates a JMS MessageProducer object for sending its request along with a MessageConsumer to listen for the response. In the application, I create a JMS temporary queue and assign that to JMSReplyTo for every request message I send.
+In the following, I'll building another application for listening to queues, processing requests and sending reponses through the queue.
+
