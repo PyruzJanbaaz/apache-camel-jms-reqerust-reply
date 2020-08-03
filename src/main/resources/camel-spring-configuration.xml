@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+
+
+    <!--JMS CONNECTION FACTORY -->
+    <bean id="jmsConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+        <property name="brokerURL" value="tcp://127.0.0.1:61616"/>
+    </bean>
+    <bean id="pooledConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory"
+          init-method="start" destroy-method="stop">
+        <property name="maxConnections" value="50"/>
+        <property name="connectionFactory" ref="jmsConnectionFactory"/>
+    </bean>
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="pooledConnectionFactory"/>
+    </bean>
+
+    <!-- RESTLET CONNECTION POOLING -->
+    <bean id="restletComponent" class="org.restlet.Component"/>
+    <bean id="restlet" class="org.apache.camel.component.restlet.RestletComponent">
+        <constructor-arg index="0">
+            <ref bean="restletComponent"/>
+        </constructor-arg>
+        <property name="maxThreads" value="100"/>
+        <property name="minThreads" value="1"/>
+        <property name="threadMaxIdleTimeMs" value="60000"/>
+    </bean>
+
+
+
+    <camelContext trace="true" xmlns="http://camel.apache.org/schema/spring">
+        <route id="inbound">
+            <from uri="restlet:http://0.0.0.0:8080/rrp?restletMethods=get,post"/>
+            <filter>
+                <method ref="socketMessageFilter" method="filter"/>
+                <to uri="seda:next"/>
+            </filter>
+        </route>
+        <route>
+            <from uri="seda:next"/>
+            <choice>
+                <when>
+                    <method ref="socketMessageValidator" method="validation"/>
+                    <process id="inboundProcessor" ref="socketInboundProcessor"/>
+                    <to uri="activemq:queue:inbound_tcp?replyTo=outbound_tcp&amp;requestTimeout=60000&amp;replyToType=Exclusive&amp;maxConcurrentConsumers=5"
+                        pattern="InOut"/>
+                    <process ref="socketOutboundProcessor"/>
+                </when>
+                <otherwise>
+                    <transform>
+                        <simple>info:duplicate</simple>
+                    </transform>
+                </otherwise>
+            </choice>
+        </route>
+    </camelContext>
+
+
+    <!-- PROCESSORS -->
+    <bean id="socketInboundProcessor" class="com.pyruz.camel.component.processor.InboundProcessor"/>
+    <bean id="socketOutboundProcessor" class="com.pyruz.camel.component.processor.OutboundProcessor"/>
+
+    <!-- FILTERS AND VALIDATIONS -->
+    <bean id="socketMessageValidator"
+          class="com.pyruz.camel.validation.MessageValidator"/>
+    <bean id="socketMessageFilter" class="com.pyruz.camel.validation.MessageFilter"/>
+
+
+</beans>
+
+
