@@ -1,5 +1,5 @@
 # Spring-Apache-Camel
-Http/JMS request-reply project by Apache camel - Spring DSL
+JMS request-reply project by Apache camel - Spring DSL
 
 While decoupling of messaging applications is a primary driver of the JMS specification, there are cases where an application needs to send a request and will not continue until it receives a response indicating its request was handled. This sort of messaging pattern is known as request/response messaging, and you can think of it as a sort of Remote Procedure Call (RPC) over JMS if that helps.
 
