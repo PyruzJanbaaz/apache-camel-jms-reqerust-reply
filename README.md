@@ -1,4 +1,4 @@
-# Spring-Apache-Camel(Restlet/Jms)
+# JMS request-reply with Spring-Apache-Camel(requester)
 JMS request-reply project by Apache camel - Spring DSL
 
 - Spring 4.3.7.RELEASE
